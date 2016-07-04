@@ -13,7 +13,10 @@ abstract class AggregateRootId
         $this->id = Uuid::fromString($id);
     }
 
-    public static function fromString(string $id) : self
+    /**
+     * @return static
+     */
+    public static function fromString(string $id)
     {
         return new static($id);
     }
