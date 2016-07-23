@@ -4,9 +4,13 @@ namespace Domain\Model\Meetup;
 
 use Domain\Model\MeetupGroup\MeetupGroupId;
 use Domain\Model\User\UserId;
+use Infrastructure\DomainEvents\DomainEventRecordingCapabilities;
+use Infrastructure\DomainEvents\RecordsDomainEvents;
 
-class Meetup
+class Meetup implements RecordsDomainEvents
 {
+    use DomainEventRecordingCapabilities;
+
     private $workingTitle;
     /**
      * @var MeetupId
@@ -24,22 +28,29 @@ class Meetup
      * @var \DateTimeImmutable
      */
     private $scheduledFor;
-    private $rsvps = [];
 
     private function __construct(
         MeetupId $meetupId,
         UserId $organiserId,
         MeetupGroupId $meetupGroupId,
         string $workingTitle,
-        \DateTimeImmutable $scheduledFor)
-    {
+        \DateTimeImmutable $scheduledFor
+    ) {
         $this->workingTitle = $workingTitle;
         $this->meetupId = $meetupId;
         $this->userId = $organiserId;
         $this->meetupGroupId = $meetupGroupId;
         $this->scheduledFor = $scheduledFor;
 
-        $this->rsvps[] = Rsvp::rsvpYes($organiserId, $meetupId);
+        $meetupWasScheduled = new MeetupScheduled(
+            $meetupId,
+            $organiserId,
+            $meetupGroupId,
+            $workingTitle,
+            $scheduledFor
+        );
+
+        $this->recordThat($meetupWasScheduled);
     }
 
     public static function schedule(
